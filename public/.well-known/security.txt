@@ -1,0 +1,6 @@
+Contact: mailto:hi@jagannath.dev
+Expires: 2027-12-31T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://jagannath.dev/.well-known/security.txt
+Policy: https://jagannath.dev/privacy
+Hiring: https://jagannath.dev/#contact

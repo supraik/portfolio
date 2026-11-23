@@ -1,0 +1,29 @@
+---
+title: "Distributed KV Store (HydraKV)"
+slug: "distributed-kv"
+tagline: "High-throughput replicated LSM key-value engine with Raft consensus and zero-copy RPC."
+status: "operational"
+uptime_30d: 99.98
+latency_p99: "14ms"
+qps: "12,500"
+github_url: "https://github.com/jagannath-m/hydra-kv"
+live_url: "https://hydrakv.jagannath.dev"
+stack: ["Rust", "gRPC", "Raft", "Tokio", "RocksDB"]
+skills: ["Distributed Systems", "Rust", "Consensus", "Performance Tuning"]
+featured_order: 1
+---
+
+## Service Overview
+
+HydraKV is an embedded and clustered log-structured merge-tree (LSM) key-value engine written in Rust. It was built to explore lock-free concurrency and Raft-based consensus under high network partition strain.
+
+### Architectural Decisions
+
+1. **Raft over Multi-Paxos**: Raft was selected for its clean separation between leader election, log replication, and safety invariants. Leader election achieves convergence in `< 250ms` upon heartbeat loss.
+2. **Zero-Copy Serialization with Cap'n Proto**: Rather than paying the JSON or Protocol Buffer deserialization penalty on critical read paths, HydraKV uses Cap'n Proto memory-mapped buffers directly from the page cache.
+3. **Partition Tolerance**: Under Jepsen partition tests, split-brain write corruption was verified to be 0% with linearizable read consistency leases.
+
+### Key Trade-Offs
+
+- **Write Amplification vs Read Latency**: Compaction frequency was tuned to favor low p99 read latencies (< 15ms) at the expense of higher background disk I/O write amplification during bulk ingestion.
+- **Strict Linearizability**: We traded off off-leader read availability in exchange for monotonic read guarantees.

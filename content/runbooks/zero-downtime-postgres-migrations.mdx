@@ -1,0 +1,32 @@
+---
+title: "Zero-Downtime PostgreSQL Schema Migrations at Scale"
+slug: "zero-downtime-postgres-migrations"
+date: "2024-02-18"
+read_time: "6 min read"
+summary: "A battle-tested playbook for executing zero-lock migrations on multi-terabyte tables without holding ExclusiveLock."
+tags: ["PostgreSQL", "Database Reliability", "Infrastructure"]
+---
+
+## The Problem with Naive Migrations
+
+Running `ALTER TABLE users ADD COLUMN is_verified boolean DEFAULT false NOT NULL;` in PostgreSQL prior to v11 or on tables with active write traffic acquires an `ACCESS EXCLUSIVE` lock. This blocks all reads and writes until table rewrite finishes. On a table with 50 million rows, this causes an instant site-wide cascade failure.
+
+## Safe Migration Principles
+
+1. **Never Add a Column with Non-Null Default in a Single Statement**: Add column as nullable, backfill asynchronously in batches, then add check constraint not valid and validate.
+2. **Always Create Indexes Concurrently**:
+   ```sql
+   CREATE INDEX CONCURRENTLY idx_users_verified_active
+   ON users (is_verified)
+   WHERE is_active = true;
+   ```
+3. **Always Set Statement Timeout**:
+   ```sql
+   SET lock_timeout = '2s';
+   SET statement_timeout = '5s';
+   ```
+   If the lock cannot be acquired within 2 seconds, abort and retry rather than queueing up and starving subsequent queries.
+
+## Rollback Strategy
+
+Every migration must include a verified backward-compatible rollback script. Application code must tolerate both `vN` and `vN+1` schema simultaneously during progressive deployment.

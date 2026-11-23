@@ -1,0 +1,24 @@
+---
+title: "StreamForge Telemetry Pipeline"
+slug: "streamforge-telemetry"
+tagline: "Distributed streaming engine processing 140M daily metrics events with dynamic eBPF probes."
+status: "operational"
+uptime_30d: 99.95
+latency_p99: "28ms"
+qps: "45,000"
+github_url: "https://github.com/jagannath-m/streamforge"
+live_url: "https://streamforge.jagannath.dev"
+stack: ["Go", "Kafka", "ClickHouse", "eBPF", "Grafana"]
+skills: ["Go", "Kafka", "Observability", "Systems Architecture"]
+featured_order: 2
+---
+
+## Service Overview
+
+StreamForge is an ingestion fabric that captures kernel-level TCP socket lifecycle events using eBPF probes and pipelines them into a columnar ClickHouse cluster for real-time dependency topology reconstruction.
+
+### Key Architecture Details
+
+- **Kernel Probing with minimal overhead**: BPF ring buffers capture socket connects and closes with `< 1.2%` CPU overhead at line-rate 10GbE traffic.
+- **Partition Affinity**: Kafka partition keys are hashed on `(src_ip, dst_ip)` pairs to guarantee causal ordering of network session state machines.
+- **Rollup Engine**: Pre-aggregates 1-second metric histograms before flushing to persistent storage, minimizing ClickHouse parts thrashing.

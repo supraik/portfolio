@@ -1,0 +1,11 @@
+/* TEAM */
+  Engineer: Jagannath Mukherjee
+  Site: https://jagannath.dev
+  GitHub: https://github.com/jagannath-m
+  Location: Gurugram, India
+
+/* SITE */
+  Standards: HTML5, CSS3, TypeScript strict, Next.js App Router
+  Observability: Real-time Server-Timing waterfall, privacy-first telemetry
+  Typography: Geist Sans & Geist Mono
+  Design System: Production system visual language

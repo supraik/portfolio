@@ -1,0 +1,36 @@
+---
+id: "INC-2024-03"
+title: "Cascading Connection Pool Exhaustion in Redis Sentinel"
+date: "2024-03-14"
+severity: "SEV-1"
+duration: "22m"
+impact: "40% HTTP 504 Gateway Timeouts across auth-service; 1,200 active client sessions terminated."
+root_cause: "Missing socket connection timeout on client driver caused worker thread starvation during node failover."
+status: "resolved"
+services_affected: ["auth-service", "session-store"]
+---
+
+## Summary
+
+At 14:02 UTC, automated health alarms triggered alerting that `auth-service` error rate had surged to 38%. The issue was precipitated by an automatic failover of the primary Redis Sentinel node, which exposed an unconfigured socket timeout in the newly migrated connection pooling library.
+
+## Timeline
+
+- **14:00:00 UTC**: Routine planned network maintenance initiated on Redis node `redis-01.infra`.
+- **14:01:15 UTC**: Sentinel initiated failover and promoted `redis-02.infra` to primary.
+- **14:02:10 UTC**: `auth-service` ingress proxy reported elevated 504 Gateway Timeouts.
+- **14:05:40 UTC**: On-call engineer engaged. Observability dashboards showed thread pool saturation at 100% capacity with zero incoming requests being serviced.
+- **14:08:22 UTC**: Thread dumps revealed 256 worker threads blocked on synchronous TCP socket connect to the old master IP.
+- **14:14:00 UTC**: Hotfix deployed enforcing `connect_timeout = 250ms` and `max_retry = 3` with jittered exponential backoff.
+- **14:22:00 UTC**: Connection pools drained stalled connections and successfully re-established quorum with `redis-02`.
+- **14:24:00 UTC**: Error rates returned to baseline (< 0.02%). Incident mitigated.
+
+## Root Cause Analysis
+
+The driver library updated in release `v2.4.0` changed default connection timeout behavior from `1000ms` to indefinite (`0`). When the TCP RST packet was delayed due to the hypervisor teardown, client threads hung indefinitely in `SYN_SENT`, starving the worker queue.
+
+## Action Items
+
+1. [x] Enforce explicit non-zero socket connect and read timeouts across all datastore client initialization templates.
+2. [x] Implement client-side circuit breakers (hystrix-pattern) to fail fast when Redis latency exceeds 150ms.
+3. [x] Added automated chaos tests in staging that simulate packet drop during Sentinel failover.
