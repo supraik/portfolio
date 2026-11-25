@@ -16,7 +16,7 @@ import { RecruiterView } from "@/components/recruiter-view";
 import { useMode } from "@/components/mode-context";
 import { OWNER_CONFIG } from "@/lib/owner";
 import type { ServiceItem, IncidentItem, RunbookItem, ExperienceCommitItem } from "@/lib/content";
-import { Download, Terminal, Mail, ChevronRight } from "lucide-react";
+import { Download, Terminal, ChevronRight, Zap, Radio, Globe } from "lucide-react";
 
 interface PortfolioMainProps {
   services: ServiceItem[];
@@ -30,38 +30,40 @@ export function PortfolioMain({ services, incidents, runbooks, experience }: Por
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
 
   return (
-    <div className="flex flex-col min-h-screen bg-canvas text-fg">
+    <div className="flex flex-col min-h-screen bg-canvas text-fg selection:bg-border-focus selection:text-white">
       <Navbar />
       <CommandPalette />
 
-      <main id="main-content" className="flex-1 max-w-5xl w-full mx-auto px-4 py-8">
+      <main id="main-content" className="flex-1 max-w-5xl w-full mx-auto px-4 py-8 sm:py-12">
         {mode === "recruiter" ? (
           <RecruiterView services={services} />
         ) : (
-          <div className="space-y-16">
+          <div className="space-y-16 sm:space-y-20">
             {/* HERO SECTION */}
-            <section className="space-y-6 pt-2">
+            <section className="space-y-8 pt-2">
+              {/* Live OpenTelemetry Request Trace Waterfall */}
               <TraceWaterfall />
 
-              <div className="space-y-4 max-w-prose">
-                <div className="inline-flex items-center gap-2 text-xs font-mono text-telemetry">
-                  <span className="w-2 h-2 rounded-full bg-success"></span>
-                  <span>SYSTEM_IDENTITY // {OWNER_CONFIG.role.toUpperCase()}</span>
+              {/* Headline & Identity */}
+              <div className="space-y-5 max-w-prose">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-telemetry/10 border border-telemetry/30 text-xs font-mono text-telemetry">
+                  <span className="w-2 h-2 rounded-full bg-success animate-pulse"></span>
+                  <span className="font-bold">SYSTEM_OPERATOR // {OWNER_CONFIG.role.toUpperCase()}</span>
                 </div>
 
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-fg">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-fg leading-tight">
                   {OWNER_CONFIG.name}
                 </h1>
 
-                <p className="text-base sm:text-lg text-fg leading-relaxed">
-                  Building resilient distributed services, real-time observability telemetry, and zero-downtime database platforms.
+                <p className="text-base sm:text-lg text-fg-muted leading-relaxed font-sans">
+                  Staff Systems and Full-Stack Engineer architecting resilient distributed consensus engines, real-time eBPF telemetry fabrics, and zero-downtime database platforms.
                 </p>
 
                 {/* Primary Action Buttons */}
-                <div className="flex flex-wrap items-center gap-3 pt-2">
+                <div className="flex flex-wrap items-center gap-3 pt-2 font-mono text-xs">
                   <a
                     href="#contact"
-                    className="flex items-center gap-2 px-4 py-2 rounded bg-border-focus text-white text-xs font-mono font-bold hover:opacity-90 transition-opacity"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-border-focus text-white font-bold hover:opacity-90 transition-all shadow-glow-telemetry/20"
                   >
                     <Terminal className="w-3.5 h-3.5" />
                     <span>Open a ticket</span>
@@ -70,7 +72,7 @@ export function PortfolioMain({ services, incidents, runbooks, experience }: Por
                   <a
                     href="/resume.pdf"
                     target="_blank"
-                    className="flex items-center gap-2 px-4 py-2 rounded border border-border-dim bg-surface hover:bg-subtle text-fg text-xs font-mono font-medium transition-colors"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border-dim bg-surface hover:bg-subtle text-fg font-semibold transition-colors"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>Download résumé</span>
@@ -78,7 +80,7 @@ export function PortfolioMain({ services, incidents, runbooks, experience }: Por
 
                   <a
                     href="#experience"
-                    className="flex items-center gap-1.5 px-3 py-2 text-xs font-mono text-telemetry hover:underline"
+                    className="flex items-center gap-1.5 px-3 py-2 text-telemetry hover:underline font-bold"
                   >
                     <span>Inspect git log</span>
                     <ChevronRight className="w-3 h-3" />
@@ -95,13 +97,13 @@ export function PortfolioMain({ services, incidents, runbooks, experience }: Por
               <GitLog commits={experience} />
             </section>
 
-            {/* SERVICES SECTION */}
+            {/* PRODUCTION SERVICES */}
             <ServicesSection services={services} selectedSkill={selectedSkill} />
 
             {/* INCIDENTS POSTMORTEMS */}
             <IncidentsSection incidents={incidents} />
 
-            {/* DEPENDENCY GRAPH */}
+            {/* LIVING DEPENDENCY GRAPH */}
             <DependencyGraph services={services} onSelectSkill={setSelectedSkill} />
 
             {/* RUNBOOKS / TECHNICAL WRITING */}
